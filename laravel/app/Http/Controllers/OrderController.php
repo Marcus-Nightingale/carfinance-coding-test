@@ -2,38 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\OrderResource;
 use App\Models\Order;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class OrderController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): AnonymousResourceCollection
     {
-        // TODO: This endpoint becomes slow with many orders. Investigate query count.
-        $orders = Order::all();
+        $orders = Order::with(['customer', 'items'])->paginate(50);
 
-        $result = [];
-
-        foreach ($orders as $order) {
-            $result[] = [
-                'id'       => $order->id,
-                'status'   => $order->status,
-                'total'    => $order->total,
-                'customer' => [
-                    'id'    => $order->customer->id,
-                    'name'  => $order->customer->name,
-                    'email' => $order->customer->email,
-                ],
-                'items' => $order->items->map(fn ($item) => [
-                    'id'           => $item->id,
-                    'product_name' => $item->product_name,
-                    'sku'          => $item->sku,
-                    'quantity'     => $item->quantity,
-                    'unit_price'   => $item->unit_price,
-                ]),
-            ];
-        }
-
-        return response()->json($result);
+        return OrderResource::collection($orders);
     }
 }

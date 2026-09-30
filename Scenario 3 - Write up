@@ -1,0 +1,21 @@
+Scenario 3 — Resilient CSV Import
+
+I reviewed the existing importcontroller, processimportjob and import job code. I identified several improvements needed
+to make the import safer and easier to monitor.
+
+I added a test to check that an invalid row does not prevent valid rows from being improted as this was part of the AC.
+Before changing the implementation, I asked an LLM to produce a plan.md based on the scenario requirments. Reviewing the
+lan first gave me the opportunity to correct and refine the approach before implemention began.
+
+After reviewing the initial plan produced, i identified areas that needed more detial, including how to handle duplicate imports,
+retries, progress, updates, and invalid rows. I reviewed the revised plan and made some future adjustments before starting the
+implemention.
+
+Once the plan was implemented, I ran `make reset && make test` and confirmed the tests where still passing. I then review
+the changed code and found additional issues so made further changes to address these issues, improve malformed-row reporting
+and protect rejected CSV downloads from spreadsheet formula execution.
+
+I also removed tthe shared default password. Imports now require each row to provide a valid password, rather than asigning
+every account the same predictable value.
+
+Further improvements as possible, but i judged them to be outside the scope of this scenario.

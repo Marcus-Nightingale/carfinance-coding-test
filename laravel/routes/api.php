@@ -16,9 +16,10 @@ Route::get('/orders', [OrderController::class, 'index']);
 
 // Scenario 3 — CSV Import
 Route::post('/imports', [ImportController::class, 'store']);
+Route::get('/imports/{id}/errors', [ImportController::class, 'errors']);
 Route::get('/imports/{id}', [ImportController::class, 'show']);
 
 // Scenario 4 — Feature Flags
 Route::get('/features', [FeatureController::class, 'index']);
 Route::post('/features/{feature}/assign/{user}', [FeatureController::class, 'assign']);
-Route::get('/beta', [FeatureController::class, 'beta'])->middleware(FeatureEnabled::class . ':beta');
+Route::get('/beta', [FeatureController::class, 'beta'])->middleware(FeatureEnabled::class.':beta');
