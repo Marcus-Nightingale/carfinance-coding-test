@@ -1,0 +1,43 @@
+Scenario 2 - API Performance
+
+The main performance issue was caused by an N+1 query problem in the orders endpoint.
+
+The controller was initially loading all orders under Order::all(), after which the resource accessed the related customer
+and items relationships for each individual order. This resulted in each relationship being lazy loaded separately.
+
+Using the debugbar, I confirmed that the endpoint was retrieving approximately 7000 model instances across 2001 db queries.
+The request was using around 18MB of memory and took appox 300ms to complete.
+
+I also reviewed the associated orders, customers and order_items tables and identified that some of the relations columns
+were missing appropriate db indexes, which could further impact query performance as the dataset grows.
+
+The primary optimisation was to replace the unbounded Order::all() query with pagination and eager loading:
+
+```
+Order::with(['customer', 'items'])->paginate(50);
+```
+
+This addressed two separate issues:
+1) Pagination prevents the api from loading the complete orders dataset into memory for every request (which on much
+larger datasets could cause memory exhaustion issues resulting in platform slowdowns and/or downtime)
+2) Eager loading retrieved the required relations in a small, fixed number of queries rather than issuing additional queries
+for each individual order.
+
+With pagination set to 50 records, the endpoint now requires only a small number of queries for each request: on
+pagination count query, one query for the orders, one for the related customers and one for the related order items.
+
+I also updated the API resources so that the related data is handled through dedicated resources and whenLoaded(), ensuring
+relations are only serialised when they have been explicitly loaded.
+
+DB indexes where added where appropriate to improve the performance of relationship lookups (worth nothing here that in
+a production environment depending on the size of the table this is something that would need a migration or potentially need to
+be down OOHs in order to avoid issues with the table locking up)
+
+Caching was considered and initially implemented, but i removed it from the final solution. A production caching implementation
+would ideally use a shared caches such as Redis and introduce cache invalidation considerations. This felt outside the scope of the
+scenario as the underlying query and pagination improvements addressed the fundamental performance problems directly.
+
+During implementation, I also reviewed the generated changes rather than accepting them without modification. An unrelated
+change introduction by the LLM was reverted.
+
+Finally i ran the test suite again and confirmed that all tests passed after the performance changes.

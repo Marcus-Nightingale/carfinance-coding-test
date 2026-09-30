@@ -1,0 +1,41 @@
+Notes - Car finance Tech Test
+
+Will complete Scenario 2 and Scenario 3.
+(Note I have a 4 month old who is teething so I had a couple of interruptions here and there)
+
+Steps Taken
+- Used an LLM to quickly make a makefile with all the commands listed in the read me to save on a bit of typing,
+- Ran make setup
+- Checked existing tests actually pass (they did)
+- Added in larval debugbar
+
+Started Scenario 2
+- Reviewed the OrderController, Order.php, OrderItem.php and Customer.php
+- Setup a view for orders controller index so I could use the larval debugger to confirm the number of queries to be sure that is 7000 models over 2000+ queries.
+- Confirmed it was 7000 models retrieved over 2001 queries (looking at an N+1 problem) (18MB memory with 298ms request time)
+- Review the tables and found a lack of indexes as well
+- No caching in place
+- Test looks to use LLM in order to complete the scenario so passed the instructions and got AI to implement the required changes
+- Removed a test around the debug bar I forget to remove
+- Confirmed test issue on the original orders test after AI implementation so requested it to be fixed
+- Reviewed LLM implementation change outside of what was requested was made so requested this be undone.
+- Although I got the LLM to add in caching, I removed this as ideally we would also have a redis instance etc for this which feels outside the scope of the scenario.
+- Double checked all the tests passed still and that the code was fine and correct
+
+Started Scenario 3
+- Reviewed the ImportController, ProcessImportJob, ImportJob,
+- Main issues and improvements that i could make here would be to validate and store the upload with a unique internal filename,
+prevent duplicate concurrent imports, stream and validte rows independently and expose the progress, and then expose row
+level failures with a new temp rejected rows csv being returned as well.
+- Wrote a new test that checks the import job doesnt fail when a row is invalid
+- Made a write up and requested that the LLM produced a plan.md which i could review based on some initial requirements
+to give me the opportunity to make some changes before it actually starts work
+- Reviewed the plan.md and found a couple of areas which need tightening up,
+- Reviewed the plan with the new changes and make some additional changes,
+- Kicked off the plan, there is some additional improvement which could be done but i feel it might to be outside the scope of the scenario
+- After LLM was complete performed a make reset and make test and confimed the tests passed (which they did)
+- then review the code that was changed found some issues in the implemention around DB failures being reported as duplicate records,
+row-processing rows being swolled and stale pending jobs which need to be cleaned up
+- cleaned up the code and made some additional changes
+- ran unit tests to confirm they are all still passing
+- confirmed the code is working as expected with some manual testing
